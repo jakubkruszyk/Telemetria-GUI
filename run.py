@@ -1,10 +1,11 @@
-from Telemetry import main_window
-from Telemetry.data_generator import generate
+from Telemetry import main_window, container
+from Telemetry.data_generator import Generator
 
 main_window.create_window()
+generator = Generator(2)
 
 while True:
     event = main_window.read_window()
     if event == "closed":
         break
-    main_window.update_data(generate())
+    container.update(generator.get())

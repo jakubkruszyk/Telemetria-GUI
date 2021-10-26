@@ -13,16 +13,17 @@ class PlotWindow:
     def side_menu_layout(self):
         return [[sg.Text("Layout Type")],
                 [sg.Combo(values=PLOT_LAYOUT_TYPES, default_value=self.selected_plot_layout, key="-layout_type-",
-                          enable_events=True)],
+                          enable_events=True, readonly=True)],
                 [sg.Text("Data source")],
                 [sg.Combo(values=DATA_SOURCES, default_value=self.selected_data_source, key="-data_source-",
-                          enable_events=True)],
+                          enable_events=True, readonly=True)],
                 [sg.Button("Create new window")],
                 [sg.Button("Destroy all")]
                 ]
 
     def single_plot_layout(self, num):
-        sub_layout = [[sg.Combo(values=AVAILABLE_PLOTS, default_value=AVAILABLE_PLOTS[0], key=f"-plot_{num}_source-")],
+        sub_layout = [[sg.Combo(values=AVAILABLE_PLOTS, default_value="None", key=f"-plot_source_{num}-",
+                                enable_events=True, readonly=True)],
                       [sg.Canvas(key=f"-plot_{num}-", background_color="black")]]
         return sg.Column(layout=sub_layout, background_color="white")
 
@@ -67,10 +68,13 @@ class PlotWindow:
     # methods for managing window
     # =====================================================================================================================================
     def update_layout(self):
-        self.plots_layout = []
+        self.plots_layout.clear()
+        self.plots_sources.clear()
         dim = self.selected_plot_layout.split("x")
+        self.plot_y = [[0 for _ in range(PLOTS_DEFAULT_RANGES[0])] for _ in range(int(dim[0]) * int(dim[1]))]
         self.plots_layout = [[self.single_plot_layout(int(dim[1]) * row + col) for col in range(int(dim[1]))]
                              for row in range(int(dim[0]))]
+        self.plots_sources = {k: "None" for k in range(int(dim[0]) * int(dim[1]))}
         self.create_window()
 
     def create_window(self):
@@ -99,18 +103,30 @@ class PlotWindow:
 
     def read_window(self):
         event, values = self.window.read(timeout=20)
-        if event == "-layout_type-":
-            # saving parameters that changed and cleaning flags
+
+        if event == sg.WIN_CLOSED or event is None:
+            return "closed"
+
+        elif event == "-layout_type-":
+            # saving parameters that may changed and cleaning flags
             self.selected_plot_layout = values["-layout_type-"]
             self.selected_data_source = values["-data_source-"]
             self.connected = False
             self.re_plot_ready = False
             # restarting window
             self.window.close()
-            self.update_layout()
+            # check if just need to change plots layout or whole window
+            temp = values[event].split("x")
+            if not (temp[0].isdigit() and temp[1].isdigit()):
+                # TODO add indicator window functionality
+                print("Wrong layout")
+                self.selected_plot_layout = "1x1"
+                self.update_layout()
+            else:
+                self.update_layout()
 
-        elif event == sg.WIN_CLOSED or event is None:
-            return "closed"
+        elif event[:-3] == "-plot_source":
+            self.plots_sources[int(event[-2])] = values[event]
 
         elif event == "Connect":
             if not self.connected:
@@ -118,7 +134,7 @@ class PlotWindow:
                 self.create_plots()
 
         elif event == "Import":
-            self.refresh_plots()
+            pass
 
         # plots refresh routine
         if self.re_plot_ready and self.connected:
@@ -181,6 +197,8 @@ class PlotWindow:
             fig.canvas.flush_events()
 
     def update_data(self, data):
+        for val in data.values():
+            pass
         self.plot_y.pop(0)
         self.plot_y.append(data[1])
         self.plot_x.pop(0)
