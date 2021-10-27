@@ -9,3 +9,4 @@ while True:
     if event == "closed":
         break
     container.update(generator.get())
+    main_window.update_data(container.read_last())

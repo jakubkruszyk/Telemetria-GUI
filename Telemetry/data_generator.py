@@ -12,8 +12,11 @@ class Generator:
         random.seed(seed)
 
     def get(self):
-        data = [self.time]
-        for _ in AVAILABLE_PLOTS:
-            data.append(random.randrange(-20, 20))
+        data = {"time": self.time}
+        for key in AVAILABLE_PLOTS:
+            if key == "Only 1":
+                data[key] = 1
+            else:
+                data[key] = random.randrange(-20, 20)
         self.time += 0.1
         return data
