@@ -1,9 +1,9 @@
 from Telemetry.globals import *
+from Telemetry import container
 import PySimpleGUI as sg
 from matplotlib.figure import Figure
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
-import numpy as np
 
 
 class PlotWindow:
@@ -49,8 +49,6 @@ class PlotWindow:
     fig_aggs = []
 
     # data for plotting
-    default_x = np.linspace(0, 20, PLOTS_POINTS)
-    default_y = [0 for _ in default_x]
     plot_y = None
     plot_x = None
 
@@ -60,8 +58,7 @@ class PlotWindow:
     def __init__(self):
         self.plots_layout = [[self.single_plot_layout(0)]]
         self.plot_y = [[0 for _ in range(PLOTS_POINTS)]]
-        self.plot_x = [0 for _ in range(PLOTS_POINTS)]
-
+        self.plot_x = container.read_range()["time"]
     # =====================================================================================================================================
     # methods for managing window
     # =====================================================================================================================================
@@ -189,11 +186,12 @@ class PlotWindow:
             fig.canvas.flush_events()
 
     def update_data(self, data):  # data should be a dict
+        self.plot_x.pop(0)
+        self.plot_x.append(data["time"])
+        data.pop("time")
         for key, src in zip(self.plots_sources.keys(), self.plots_sources.values()):
             self.plot_y[key].pop(0)
             self.plot_y[key].append(data[src])
-        self.plot_x.pop(0)
-        self.plot_x.append(data["time"])
 
         if self.connected:
             self.refresh_plots()

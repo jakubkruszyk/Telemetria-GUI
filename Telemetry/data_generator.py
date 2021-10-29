@@ -18,5 +18,5 @@ class Generator:
                 data[key] = 1
             else:
                 data[key] = random.randrange(-20, 20)
-        self.time += 0.1
+        self.time += TIME_STEP
         return data
