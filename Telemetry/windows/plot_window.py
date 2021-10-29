@@ -120,7 +120,10 @@ class PlotWindow:
                 self.update_layout()
 
         elif event[:-3] == "-plot_source":
-            self.plots_sources[int(event[-2])] = values[event]
+            plot_id = int(event[-2])
+            self.plots_sources[plot_id] = values[event]
+            data = container.read_range()
+            self.plot_y[plot_id] = data[self.plots_sources[plot_id]]
 
         elif event == "Connect":
             if not self.connected:
@@ -174,7 +177,7 @@ class PlotWindow:
             ax.set_xlim([self.plot_x[0], self.plot_x[-1]])
 
         for line, y in zip(self.lines, self.plot_y):
-            # resize to fit new data
+            # TODO resize to fit new data
             # y_min = 1.05 * np.min(self.sine_y)
             # y_max = 1.05 * np.max(self.sine_y)
             # self.axs[i].set_ylim([y_min, y_max])
