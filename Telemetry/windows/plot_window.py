@@ -190,8 +190,7 @@ class PlotWindow:
 
     def update_data(self, data):  # data should be a dict
         self.plot_x.pop(0)
-        self.plot_x.append(data["time"])
-        data.pop("time")
+        self.plot_x.append(data.pop("time"))
         for key, src in zip(self.plots_sources.keys(), self.plots_sources.values()):
             self.plot_y[key].pop(0)
             self.plot_y[key].append(data[src])
