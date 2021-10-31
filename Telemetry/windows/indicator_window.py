@@ -5,7 +5,7 @@ from Telemetry.globals import *
 class IndicatorWindow:
     window = None
     # TODO change name of AVAILABLE_PLOTS to DATA_ORDER
-    data = [[0, 0, 0] for _ in range(AVAILABLE_PLOTS)]
+    data = {key: [0, 0, 0] for key in AVAILABLE_PLOTS}  # key: [val, min, max]
     last_update = 0
 
     selected_data_source = DATA_SOURCES[0]
@@ -21,13 +21,16 @@ class IndicatorWindow:
     # ===========================================================================
     def single_indicator_layout(self, key):
         return [[sg.Text(key)],
-                [sg.Text("Value:"), sg.Text("Min:"), sg.Text("Max:")],
-                [sg.Text("", key=f"-{key}_val-"), sg.Text("", key=f"-{key}_min"), sg.Text("", key=f"-{key}_max-")]
+                [sg.Column([[sg.Text("Value:")], [sg.Text("0.0", key=f"-{key}_val-")]]),
+                 sg.Column([[sg.Text("Min:")], [sg.Text("0.0", key=f"-{key}_min")]]),
+                 sg.Column([[sg.Text("Max:")], [sg.Text("0.0", key=f"-{key}_max-")]])]
                 ]
 
     # TODO write layout
     def indicators_layout(self):
-        return [[sg.Text("For future")]]
+        return [[sg.Frame("", self.single_indicator_layout(0)), sg.Frame("", self.single_indicator_layout(1))],
+                [sg.Frame("", self.single_indicator_layout(2)), sg.Frame("", self.single_indicator_layout(3))]
+                ]
 
     # TODO throw to separate file
     def side_menu_layout(self):
@@ -65,26 +68,23 @@ class IndicatorWindow:
         # TODO ! for future ! elements scaling like plots
 
     def read_window(self):
-        while True:
-            event, values = self.window.read(timeout=20)
-            if event == sg.WINDOW_CLOSED or event is None:
-                return sg.WINDOW_CLOSED
-            elif event == "Close all":
-                return "Close all"
+        event, values = self.window.read(timeout=20)
+        if event == sg.WINDOW_CLOSED or event is None:
+            return "closed"
 
-    def refresh_values(self, data):
-        if len(data) == len(self.data):
-            for i, dat in self.data:
-                dat[0] = data[i]
-                # min
-                if dat[1] > data[i]:
-                    dat[1] = data[i]
-                # max
-                if dat[2] < data[i]:
-                    dat[2] = data[i]
-                # TODO update gui
-        else:
-            print(f"Data packet size is wrong. Received: {len(data)}, expected: {len(self.data)}")
+        return None
+
+    def update_data(self, data):
+        self.last_update = data.pop("time")
+        for key in data:
+            self.data[key][0] = data[key]
+            # min
+            if data[key] < self.data[key][1]:
+                self.data[key][1] = data[key]
+            # max
+            if data[key] > self.data[key][2]:
+                self.data[key][2] = data[key]
+            # TODO update gui
 
     def connect(self):
         pass
