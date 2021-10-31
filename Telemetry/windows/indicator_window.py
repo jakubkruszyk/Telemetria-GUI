@@ -22,14 +22,15 @@ class IndicatorWindow:
     def single_indicator_layout(self, key):
         return [[sg.Text(key)],
                 [sg.Column([[sg.Text("Value:")], [sg.Text("0.0", key=f"-{key}_val-")]]),
-                 sg.Column([[sg.Text("Min:")], [sg.Text("0.0", key=f"-{key}_min")]]),
+                 sg.Column([[sg.Text("Min:")], [sg.Text("0.0", key=f"-{key}_min-")]]),
                  sg.Column([[sg.Text("Max:")], [sg.Text("0.0", key=f"-{key}_max-")]])]
                 ]
 
     # TODO write layout
     def indicators_layout(self):
-        return [[sg.Frame("", self.single_indicator_layout(0)), sg.Frame("", self.single_indicator_layout(1))],
-                [sg.Frame("", self.single_indicator_layout(2)), sg.Frame("", self.single_indicator_layout(3))]
+        return [[sg.Text("Last update: "), sg.Text("0", key="-last_update-")],
+                [sg.Frame("", self.single_indicator_layout("None")), sg.Frame("", self.single_indicator_layout("Random"))],
+                [sg.Frame("", self.single_indicator_layout("Only 1")), sg.Frame("", self.single_indicator_layout(3))]
                 ]
 
     # TODO throw to separate file
@@ -72,6 +73,11 @@ class IndicatorWindow:
         if event == sg.WINDOW_CLOSED or event is None:
             return "closed"
 
+        elif event == "Connect":
+            if not self.connected:
+                self.connected = True
+                self.connect()
+
         return None
 
     def update_data(self, data):
@@ -84,7 +90,16 @@ class IndicatorWindow:
             # max
             if data[key] > self.data[key][2]:
                 self.data[key][2] = data[key]
-            # TODO update gui
+
+        self.refresh_values()
+
+    def refresh_values(self):
+        for key in self.data:
+            self.window[f"-{key}_val-"].update(self.data[key][0])
+            self.window[f"-{key}_min-"].update(self.data[key][1])
+            self.window[f"-{key}_max-"].update(self.data[key][2])
+
+        self.window["-last_update-"].update(f"{self.last_update:.2f}")
 
     def connect(self):
         pass
