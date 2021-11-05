@@ -1,5 +1,6 @@
-from Telemetry import main_window, container
+from Telemetry import main_window, container, PlotWindow, IndicatorWindow
 from Telemetry.data_generator import Generator
+from Telemetry.globals import *
 
 main_window.create_window()
 generator = Generator(2)
@@ -8,5 +9,13 @@ while True:
     event = main_window.read_window()
     if event == "closed":
         break
+
+    elif event == "layout":
+        if main_window.selected_layout == PLOT_LAYOUT_TYPES[0]:
+            main_window = IndicatorWindow()
+        else:
+            main_window = PlotWindow()
+        main_window.create_window()
+
     container.update(generator.get())
     main_window.update_data(container.read_last())

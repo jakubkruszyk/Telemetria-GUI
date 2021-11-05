@@ -56,6 +56,15 @@ class IndicatorWindow(BaseWindow):
                 self.connected = True
                 self.connect()
 
+        elif event == "-layout_type-":
+            # saving parameters that may changed and cleaning flags
+            self.selected_layout = values["-layout_type-"]
+            self.selected_data_source = values["-data_source-"]
+            self.connected = False
+            # restarting window
+            self.window.close()
+            return "layout"
+
         return None
 
     def update_data(self, data):

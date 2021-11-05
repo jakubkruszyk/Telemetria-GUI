@@ -26,13 +26,5 @@ class BaseWindow:
         return [[sg.Button("Connect"), sg.Button("Import"), sg.Button("Export")]]
 
     # =====================================================================================================================================
-    # layouts for gui sections
+    # gui event routines
     # =====================================================================================================================================
-    def connect(self):
-        pass
-
-    def handle_menus_events(self, event, values):
-        if event == "Import":
-            pass
-        elif event == "Export":
-            pass

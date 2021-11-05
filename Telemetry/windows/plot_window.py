@@ -95,10 +95,7 @@ class PlotWindow(BaseWindow):
             # check if just need to change plots layout or whole window
             temp = values[event].split("x")
             if not (temp[0].isdigit() and temp[1].isdigit()):
-                # TODO add indicator window functionality
-                print("Wrong layout")
-                self.selected_layout = "1x1"
-                self.update_layout()
+                return "layout"
             else:
                 self.update_layout()
 
