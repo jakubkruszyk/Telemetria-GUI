@@ -1,4 +1,5 @@
 from Telemetry.globals import *
+from Telemetry.windows.base_window import BaseWindow
 from Telemetry import container
 import PySimpleGUI as sg
 from matplotlib.figure import Figure
@@ -6,41 +7,22 @@ import matplotlib.pyplot as plt
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 
 
-class PlotWindow:
+class PlotWindow(BaseWindow):
     # =====================================================================================================================================
     # layouts for gui sections
     # =====================================================================================================================================
-    def side_menu_layout(self):
-        return [[sg.Text("Layout Type")],
-                [sg.Combo(values=PLOT_LAYOUT_TYPES, default_value=self.selected_plot_layout, key="-layout_type-",
-                          enable_events=True, readonly=True)],
-                [sg.Text("Data source")],
-                [sg.Combo(values=DATA_SOURCES, default_value=self.selected_data_source, key="-data_source-",
-                          enable_events=True, readonly=True)],
-                [sg.Button("Create new window")],
-                [sg.Button("Destroy all")]
-                ]
-
     def single_plot_layout(self, num):
         sub_layout = [[sg.Combo(values=AVAILABLE_PLOTS, default_value="None", key=f"-plot_source_{num}-",
                                 enable_events=True, readonly=True)],
                       [sg.Canvas(key=f"-plot_{num}-", background_color="black")]]
         return sg.Column(layout=sub_layout, background_color="white")
 
-    def top_menu_layout(self):
-        return [[sg.Button("Connect"), sg.Button("Import"), sg.Button("Export")]]
-
     # =====================================================================================================================================
     # variables for work parameters
     # =====================================================================================================================================
-    selected_plot_layout = PLOT_LAYOUT_TYPES[1]
-    selected_data_source = DATA_SOURCES[0]
     plots_sources = {0: "None"}
 
-    connected = False
-
     plots_layout = None
-    window = None
 
     # variables for plotting
     figs = []
@@ -56,6 +38,7 @@ class PlotWindow:
     # init
     # =====================================================================================================================================
     def __init__(self):
+        self.selected_layout = "1x1"  # default layout
         self.plots_layout = [[self.single_plot_layout(0)]]
         self.plot_y = [[0 for _ in range(PLOTS_POINTS)]]
         self.plot_x = container.read_range()["time"]
@@ -65,7 +48,7 @@ class PlotWindow:
     def update_layout(self):
         self.plots_layout.clear()
         self.plots_sources.clear()
-        dim = self.selected_plot_layout.split("x")
+        dim = self.selected_layout.split("x")
         self.plot_y = [[0 for _ in range(PLOTS_POINTS)] for _ in range(int(dim[0]) * int(dim[1]))]
         self.plots_layout = [[self.single_plot_layout(int(dim[1]) * row + col) for col in range(int(dim[1]))]
                              for row in range(int(dim[0]))]
@@ -90,7 +73,7 @@ class PlotWindow:
 
         # resize plots to fill the screen
         window_size = self.window.get_screen_size()
-        dim = self.selected_plot_layout.split("x")
+        dim = self.selected_layout.split("x")
         x_size = int((window_size[0] - SIDE_MENU_WIDTH) / int(dim[1]) - 2 * PLOTS_PADDING)
         y_size = int((window_size[1] - TOP_MENU_SIZE) / int(dim[0]) - 2 * PLOTS_PADDING - PLOTS_Y_OFFSET)
         for i in range(int(dim[0]) * int(dim[1])):
@@ -104,7 +87,7 @@ class PlotWindow:
 
         elif event == "-layout_type-":
             # saving parameters that may changed and cleaning flags
-            self.selected_plot_layout = values["-layout_type-"]
+            self.selected_layout = values["-layout_type-"]
             self.selected_data_source = values["-data_source-"]
             self.connected = False
             # restarting window
@@ -114,7 +97,7 @@ class PlotWindow:
             if not (temp[0].isdigit() and temp[1].isdigit()):
                 # TODO add indicator window functionality
                 print("Wrong layout")
-                self.selected_plot_layout = "1x1"
+                self.selected_layout = "1x1"
                 self.update_layout()
             else:
                 self.update_layout()
@@ -151,7 +134,7 @@ class PlotWindow:
         self.lines.clear()
         self.fig_aggs.clear()
 
-        dim = self.selected_plot_layout.split("x")
+        dim = self.selected_layout.split("x")
         px = 1/plt.rcParams['figure.dpi']
         x_size, y_size = self.window["-plot_0-"].get_size()
 

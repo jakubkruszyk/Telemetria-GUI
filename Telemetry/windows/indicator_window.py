@@ -1,16 +1,11 @@
 import PySimpleGUI as sg
 from Telemetry.globals import *
+from Telemetry.windows.base_window import BaseWindow
 
 
-class IndicatorWindow:
-    window = None
-    # TODO change name of AVAILABLE_PLOTS to DATA_ORDER
+class IndicatorWindow(BaseWindow):
     data = {key: [0, 0, 0] for key in AVAILABLE_PLOTS}  # key: [val, min, max]
     last_update = 0
-
-    selected_data_source = DATA_SOURCES[0]
-    selected_layout = "Indicator"
-    connected = False
 
     # TODO init from config file
     def __init__(self):
@@ -26,28 +21,11 @@ class IndicatorWindow:
                  sg.Column([[sg.Text("Max:")], [sg.Text("0.0", key=f"-{key}_max-")]])]
                 ]
 
-    # TODO write layout
     def indicators_layout(self):
         return [[sg.Text("Last update: "), sg.Text("0", key="-last_update-")],
                 [sg.Frame("", self.single_indicator_layout("None")), sg.Frame("", self.single_indicator_layout("Random"))],
                 [sg.Frame("", self.single_indicator_layout("Only 1")), sg.Frame("", self.single_indicator_layout(3))]
                 ]
-
-    # TODO throw to separate file
-    def side_menu_layout(self):
-        return [[sg.Text("Layout Type")],
-                [sg.Combo(values=PLOT_LAYOUT_TYPES, default_value=self.selected_layout, key="-layout_type-",
-                          enable_events=True)],
-                [sg.Text("Data source")],
-                [sg.Combo(values=DATA_SOURCES, default_value=self.selected_data_source, key="-data_source-",
-                          enable_events=True)],
-                [sg.Button("Create new window")],
-                [sg.Button("Close all")]
-                ]
-
-    # TODO throw to separete file
-    def top_menu_layout(self):
-        return [[sg.Button("Connect"), sg.Button("Import"), sg.Button("Export")]]
 
     # ===========================================================================
     # functions for managing gui
