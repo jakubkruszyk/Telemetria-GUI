@@ -1,46 +1,28 @@
 from Telemetry.globals import *
+from Telemetry.windows.base_window import BaseWindow
+from Telemetry import container
 import PySimpleGUI as sg
 from matplotlib.figure import Figure
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
-import numpy as np
 
 
-class PlotWindow:
+class PlotWindow(BaseWindow):
     # =====================================================================================================================================
     # layouts for gui sections
     # =====================================================================================================================================
-    def side_menu_layout(self):
-        return [[sg.Text("Layout Type")],
-                [sg.Combo(values=PLOT_LAYOUT_TYPES, default_value=self.selected_plot_layout, key="-layout_type-",
-                          enable_events=True)],
-                [sg.Text("Data source")],
-                [sg.Combo(values=DATA_SOURCES, default_value=self.selected_data_source, key="-data_source-",
-                          enable_events=True)],
-                [sg.Button("Create new window")],
-                [sg.Button("Destroy all")]
-                ]
-
     def single_plot_layout(self, num):
-        sub_layout = [[sg.Combo(values=AVAILABLE_PLOTS, default_value=AVAILABLE_PLOTS[0], key=f"-plot_{num}_source-")],
+        sub_layout = [[sg.Combo(values=AVAILABLE_PLOTS, default_value="None", key=f"-plot_source_{num}-",
+                                enable_events=True, readonly=True)],
                       [sg.Canvas(key=f"-plot_{num}-", background_color="black")]]
         return sg.Column(layout=sub_layout, background_color="white")
-
-    def top_menu_layout(self):
-        return [[sg.Button("Connect"), sg.Button("Import"), sg.Button("Export")]]
 
     # =====================================================================================================================================
     # variables for work parameters
     # =====================================================================================================================================
-    selected_plot_layout = PLOT_LAYOUT_TYPES[1]
-    selected_data_source = DATA_SOURCES[0]
     plots_sources = {0: "None"}
 
-    connected = False
-    re_plot_ready = False
-
-    plots_layout = None
-    window = None
+    plots_layout = []
 
     # variables for plotting
     figs = []
@@ -49,29 +31,31 @@ class PlotWindow:
     fig_aggs = []
 
     # data for plotting
-    default_x = np.linspace(0, 20, 150)
-    default_y = [0 for _ in default_x]
     plot_y = None
     plot_x = None
 
     # =====================================================================================================================================
     # init
     # =====================================================================================================================================
-    def __init__(self):
-        self.plots_layout = [[self.single_plot_layout(0)]]
-        self.plot_y = [0 for _ in self.default_x]
-        self.plot_x = np.linspace(-20, 0, 150)
-        self.plot_x = self.plot_x.tolist()
+    # init values format (layout, data_source, plots_sources)
+    def __init__(self, **kwargs):
+        self.selected_layout = kwargs.get("layout", "1x1")
+        self.selected_data_source = kwargs.get("source", DATA_SOURCES[0])
+        self.plots_sources = kwargs.get("plot_sources", dict())
 
+        self.update_layout()
+        self.plot_x = container.read_range()["time"]
     # =====================================================================================================================================
     # methods for managing window
     # =====================================================================================================================================
     def update_layout(self):
-        self.plots_layout = []
-        dim = self.selected_plot_layout.split("x")
+        self.plots_layout.clear()
+        self.plots_sources.clear()
+        dim = self.selected_layout.split("x")
+        self.plot_y = [[0 for _ in range(PLOTS_POINTS)] for _ in range(int(dim[0]) * int(dim[1]))]
         self.plots_layout = [[self.single_plot_layout(int(dim[1]) * row + col) for col in range(int(dim[1]))]
                              for row in range(int(dim[0]))]
-        self.create_window()
+        self.plots_sources = {k: "None" for k in range(int(dim[0]) * int(dim[1]))}
 
     def create_window(self):
         # set build-in graphic theme
@@ -91,7 +75,7 @@ class PlotWindow:
 
         # resize plots to fill the screen
         window_size = self.window.get_screen_size()
-        dim = self.selected_plot_layout.split("x")
+        dim = self.selected_layout.split("x")
         x_size = int((window_size[0] - SIDE_MENU_WIDTH) / int(dim[1]) - 2 * PLOTS_PADDING)
         y_size = int((window_size[1] - TOP_MENU_SIZE) / int(dim[0]) - 2 * PLOTS_PADDING - PLOTS_Y_OFFSET)
         for i in range(int(dim[0]) * int(dim[1])):
@@ -99,18 +83,30 @@ class PlotWindow:
 
     def read_window(self):
         event, values = self.window.read(timeout=20)
-        if event == "-layout_type-":
-            # saving parameters that changed and cleaning flags
-            self.selected_plot_layout = values["-layout_type-"]
+
+        if event == sg.WIN_CLOSED or event is None:
+            return "closed"
+
+        elif event == "-layout_type-":
+            # saving parameters that may changed and cleaning flags
+            self.selected_layout = values["-layout_type-"]
             self.selected_data_source = values["-data_source-"]
             self.connected = False
-            self.re_plot_ready = False
             # restarting window
             self.window.close()
-            self.update_layout()
+            # check if just need to change plots layout or whole window
+            temp = values[event].split("x")
+            if not (temp[0].isdigit() and temp[1].isdigit()):
+                return "layout"
+            else:
+                self.update_layout()
+                self.create_window()
 
-        elif event == sg.WIN_CLOSED or event is None:
-            return "closed"
+        elif event[:-3] == "-plot_source":
+            plot_id = int(event[-2])
+            self.plots_sources[plot_id] = values[event]
+            data = container.read_range()
+            self.plot_y[plot_id] = data[self.plots_sources[plot_id]]
 
         elif event == "Connect":
             if not self.connected:
@@ -118,12 +114,7 @@ class PlotWindow:
                 self.create_plots()
 
         elif event == "Import":
-            self.refresh_plots()
-
-        # plots refresh routine
-        if self.re_plot_ready and self.connected:
-            self.re_plot_ready = False
-            self.refresh_plots()
+            pass
 
         return None
 
@@ -143,7 +134,7 @@ class PlotWindow:
         self.lines.clear()
         self.fig_aggs.clear()
 
-        dim = self.selected_plot_layout.split("x")
+        dim = self.selected_layout.split("x")
         px = 1/plt.rcParams['figure.dpi']
         x_size, y_size = self.window["-plot_0-"].get_size()
 
@@ -158,7 +149,7 @@ class PlotWindow:
             canvas = self.window[f"-plot_{i}-"].TKCanvas
             self.fig_aggs.append(self.draw_figure(canvas, self.figs[i]))
             # default plot
-            line, = self.axs[i].plot(self.plot_x, self.plot_y)
+            line, = self.axs[i].plot(self.plot_x, self.plot_y[0])
             self.lines.append(line)
 
         for fig_agg in self.fig_aggs:
@@ -168,21 +159,24 @@ class PlotWindow:
         for ax in self.axs:
             ax.set_xlim([self.plot_x[0], self.plot_x[-1]])
 
-        for line in self.lines:
-            # resize to fit new data
+        for line, y in zip(self.lines, self.plot_y):
+            # TODO resize to fit new data
             # y_min = 1.05 * np.min(self.sine_y)
             # y_max = 1.05 * np.max(self.sine_y)
             # self.axs[i].set_ylim([y_min, y_max])
-            line.set_ydata(self.plot_y)
+            line.set_ydata(y)
             line.set_xdata(self.plot_x)
 
         for fig in self.figs:
             fig.canvas.draw()
             fig.canvas.flush_events()
 
-    def update_data(self, data):
-        self.plot_y.pop(0)
-        self.plot_y.append(data[1])
+    def update_data(self, data):  # data should be a dict
         self.plot_x.pop(0)
-        self.plot_x.append(data[0])
-        self.re_plot_ready = True
+        self.plot_x.append(data.pop("time"))
+        for key, src in zip(self.plots_sources.keys(), self.plots_sources.values()):
+            self.plot_y[key].pop(0)
+            self.plot_y[key].append(data[src])
+
+        if self.connected:
+            self.refresh_plots()
