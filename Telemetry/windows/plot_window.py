@@ -22,7 +22,7 @@ class PlotWindow(BaseWindow):
     # =====================================================================================================================================
     plots_sources = {0: "None"}
 
-    plots_layout = None
+    plots_layout = []
 
     # variables for plotting
     figs = []
@@ -37,10 +37,13 @@ class PlotWindow(BaseWindow):
     # =====================================================================================================================================
     # init
     # =====================================================================================================================================
-    def __init__(self):
-        self.selected_layout = "1x1"  # default layout
-        self.plots_layout = [[self.single_plot_layout(0)]]
-        self.plot_y = [[0 for _ in range(PLOTS_POINTS)]]
+    # init values format (layout, data_source, plots_sources)
+    def __init__(self, **kwargs):
+        self.selected_layout = kwargs.get("layout", "1x1")
+        self.selected_data_source = kwargs.get("source", DATA_SOURCES[0])
+        self.plots_sources = kwargs.get("plot_sources", dict())
+
+        self.update_layout()
         self.plot_x = container.read_range()["time"]
     # =====================================================================================================================================
     # methods for managing window
@@ -53,7 +56,6 @@ class PlotWindow(BaseWindow):
         self.plots_layout = [[self.single_plot_layout(int(dim[1]) * row + col) for col in range(int(dim[1]))]
                              for row in range(int(dim[0]))]
         self.plots_sources = {k: "None" for k in range(int(dim[0]) * int(dim[1]))}
-        self.create_window()
 
     def create_window(self):
         # set build-in graphic theme
@@ -98,6 +100,7 @@ class PlotWindow(BaseWindow):
                 return "layout"
             else:
                 self.update_layout()
+                self.create_window()
 
         elif event[:-3] == "-plot_source":
             plot_id = int(event[-2])

@@ -8,8 +8,9 @@ class IndicatorWindow(BaseWindow):
     last_update = 0
 
     # TODO init from config file
-    def __init__(self):
-        pass
+    def __init__(self, **kwargs):
+        self.selected_layout = kwargs.get("layout", PLOT_LAYOUT_TYPES[0])
+        self.selected_data_source = kwargs.get("source", DATA_SOURCES[0])
 
     # ===========================================================================
     # functions that returns layout fragments

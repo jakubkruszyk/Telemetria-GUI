@@ -5,7 +5,7 @@ import PySimpleGUI as sg
 class BaseWindow:
     window = None
     selected_data_source = DATA_SOURCES[0]
-    selected_layout = "Indicator"
+    selected_layout = PLOT_LAYOUT_TYPES[0]
     connected = False
 
     # =====================================================================================================================================

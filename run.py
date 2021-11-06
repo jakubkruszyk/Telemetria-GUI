@@ -11,10 +11,11 @@ while True:
         break
 
     elif event == "layout":
-        if main_window.selected_layout == PLOT_LAYOUT_TYPES[0]:
+        new_layout = main_window.selected_layout
+        if new_layout == PLOT_LAYOUT_TYPES[0]:
             main_window = IndicatorWindow()
         else:
-            main_window = PlotWindow()
+            main_window = PlotWindow(layout=new_layout)
         main_window.create_window()
 
     container.update(generator.get())
