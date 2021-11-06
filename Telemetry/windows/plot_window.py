@@ -4,6 +4,7 @@ import PySimpleGUI as sg
 from matplotlib.figure import Figure
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
+import base64
 
 
 class PlotWindow:
@@ -85,7 +86,13 @@ class PlotWindow:
                          sg.VerticalSeparator(),
                          sg.Column(self.plots_layout, key="-plots-")]
                         ]
-        self.window = sg.Window(WINDOW_TITLE, layout=whole_layout, finalize=True, resizable=True)
+
+        # convert png to base64, most portable way because .ico works only on Windows
+        icon_file = open(ICON_PATH, "rb")
+        icon = icon_file.read()
+        icon = base64.encodebytes(icon)
+        self.window = sg.Window(WINDOW_TITLE, layout=whole_layout, finalize=True, resizable=True,
+                                icon=icon)
         self.window.maximize()
 
         # resize plots to fill the screen
