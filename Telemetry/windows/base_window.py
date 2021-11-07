@@ -2,6 +2,7 @@ from Telemetry.globals import *
 import PySimpleGUI as sg
 
 
+# test comment
 class BaseWindow:
     window = None
     selected_data_source = DATA_SOURCES[0]

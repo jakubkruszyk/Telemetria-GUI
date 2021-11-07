@@ -20,3 +20,4 @@ class Generator:
                 data[key] = random.randrange(-20, 20)
         self.time += TIME_STEP
         return data
+# test comment
