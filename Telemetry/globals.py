@@ -7,7 +7,7 @@ ICON_PATH = r"Docs\\img\\logo.png"
 
 PLOT_LAYOUT_TYPES = ("Indicators", "1x1", "2x1", "2x2")
 DATA_SOURCES = ("Auto", "RF", "Cloud")
-AVAILABLE_PLOTS = ("None", "Random", "Only 1")
+AVAILABLE_PLOTS = ("None", "Random", "Only 1", "Battery voltage", "Battery temperature")
 
 # plot window parameters
 PLOTS_PADDING = 10

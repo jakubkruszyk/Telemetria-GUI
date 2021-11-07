@@ -26,7 +26,8 @@ class IndicatorWindow(BaseWindow):
     def indicators_layout(self):
         return [[sg.Text("Last update: "), sg.Text("0", key="-last_update-")],
                 [sg.Frame("", self.single_indicator_layout("None")), sg.Frame("", self.single_indicator_layout("Random"))],
-                [sg.Frame("", self.single_indicator_layout("Only 1")), sg.Frame("", self.single_indicator_layout(3))]
+                [sg.Frame("", self.single_indicator_layout("Only 1")), sg.Frame("", self.single_indicator_layout(3))],
+                [sg.Frame("", self.single_indicator_layout("Battery voltage")), sg.Frame("", self.single_indicator_layout("Battery temperature"))]  # to musiałem dodać, bo mi błąd wywalało
                 ]
 
     # ===========================================================================
