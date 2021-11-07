@@ -1,6 +1,7 @@
 import PySimpleGUI as sg
 from Telemetry.globals import *
 from Telemetry.windows.base_window import BaseWindow
+import base64
 
 
 class IndicatorWindow(BaseWindow):
@@ -43,8 +44,13 @@ class IndicatorWindow(BaseWindow):
                          sg.VerticalSeparator(),
                          sg.Column(self.indicators_layout(), key="-plots-")]
                         ]
-        # test comment
-        self.window = sg.Window(WINDOW_TITLE, layout=whole_layout, finalize=True, resizable=True)
+
+        # convert png to base64, most portable way because .ico works only on Windows
+        icon_file = open(ICON_PATH, "rb")
+        icon = icon_file.read()
+        icon = base64.encodebytes(icon)
+        self.window = sg.Window(WINDOW_TITLE, layout=whole_layout, finalize=True, resizable=True,
+                                icon=icon)
         self.window.maximize()
         # TODO ! for future ! elements scaling like plots
 
