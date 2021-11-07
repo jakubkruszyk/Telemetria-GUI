@@ -2,17 +2,22 @@
 # generates random data for testing purposes
 # =====================================================================================================================================
 from Telemetry.globals import *
-from random import seed, randrange
-
-seed(2)
-time = 0
+import random
 
 
-def generate():
-    global time
-    temp = [time]
-    for _ in AVAILABLE_PLOTS:
-        temp.append(randrange(-20, 20))
-    time += 0.1
-    return temp
-        
+class Generator:
+    time = 0
+
+    def __init__(self, seed):
+        random.seed(seed)
+
+    def get(self):
+        data = {"time": self.time}
+        for key in AVAILABLE_PLOTS:
+            if key == "Only 1":
+                data[key] = 1
+            else:
+                data[key] = random.randrange(-20, 20)
+        self.time += TIME_STEP
+        return data
+# test comment
