@@ -20,4 +20,3 @@ while True:
 
     container.update(generator.get())
     main_window.update_data(container.read_last())
-# test comment

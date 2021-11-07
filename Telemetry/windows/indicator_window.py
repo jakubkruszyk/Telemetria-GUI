@@ -92,4 +92,3 @@ class IndicatorWindow(BaseWindow):
 
     def connect(self):
         pass
-# test comment

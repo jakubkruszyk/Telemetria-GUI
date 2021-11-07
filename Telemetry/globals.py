@@ -20,5 +20,3 @@ PLOTS_POINTS = 150
 AUTO_LOG = False
 AUTO_LOG_COUNT = 100
 TIME_STEP = 20/150
-
-# test comment

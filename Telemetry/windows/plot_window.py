@@ -187,4 +187,3 @@ class PlotWindow(BaseWindow):
 
         if self.connected:
             self.refresh_plots()
-# test comment

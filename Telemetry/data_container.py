@@ -21,4 +21,3 @@ class DataContainer:
     def read_last(self):
         last_data = {k: self.data[k][-1] for k in self.data}
         return last_data
-# test comment

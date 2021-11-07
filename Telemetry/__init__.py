@@ -6,4 +6,3 @@ from Telemetry.windows.indicator_window import IndicatorWindow
 
 main_window = IndicatorWindow()
 
-# test comment
