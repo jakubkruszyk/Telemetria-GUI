@@ -26,11 +26,11 @@ class Generator:
         for p in ports:
             print(p)
         self.ser.port = ports[0][0]  # używa pierwszego portu COM na liście
-        self.ser.baudrate = 9600
-        self.ser.bytesize = serial.EIGHTBITS
-        self.ser.parity = serial.PARITY_EVEN
-        self.ser.stopbits = serial.STOPBITS_ONE
-        self.ser.timeout = 0.01
+        self.ser.baudrate = BAUDRATE
+        self.ser.bytesize = BYTESIZE
+        self.ser.parity = PARITY
+        self.ser.stopbits = STOPBITS
+        self.ser.timeout = TIMEOUT
         try:
             self.ser.open()
         except:

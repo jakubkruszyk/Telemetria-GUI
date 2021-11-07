@@ -20,3 +20,12 @@ PLOTS_POINTS = 150
 AUTO_LOG = False
 AUTO_LOG_COUNT = 100
 TIME_STEP = 20/150
+
+
+# UART connection parameters
+import serial
+BAUDRATE = 9600
+BYTESIZE = serial.EIGHTBITS
+PARITY = serial.PARITY_EVEN
+STOPBITS = serial.STOPBITS_ONE
+TIMEOUT = 0.01
