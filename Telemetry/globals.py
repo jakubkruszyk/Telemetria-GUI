@@ -6,7 +6,8 @@ GUI_THEME = "DarkGrey5"
 ICON_PATH = r"Docs\\img\\logo.png"
 
 PLOT_LAYOUT_TYPES = ("Indicators", "1x1", "2x1", "2x2")
-DATA_SOURCES = ("Auto", "RF", "Cloud")
+DATA_SOURCES = ("Auto", "USB", "Cloud")
+DATA_REFRESH_ICON_PATH = r"Docs\\img\\refresh_icon.png"
 AVAILABLE_PLOTS = ("None", "Random", "Only 1", "Battery voltage", "Battery temperature")
 
 # plot window parameters

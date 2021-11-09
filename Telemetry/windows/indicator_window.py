@@ -1,6 +1,6 @@
 import PySimpleGUI as sg
 from Telemetry.globals import *
-from Telemetry.windows.base_window import BaseWindow
+from Telemetry.windows.base_window import BaseWindow, img_to_64
 import base64
 
 
@@ -46,12 +46,8 @@ class IndicatorWindow(BaseWindow):
                          sg.Column(self.indicators_layout(), key="-plots-")]
                         ]
 
-        # convert png to base64, most portable way because .ico works only on Windows
-        icon_file = open(ICON_PATH, "rb")
-        icon = icon_file.read()
-        icon = base64.encodebytes(icon)
         self.window = sg.Window(WINDOW_TITLE, layout=whole_layout, finalize=True, resizable=True,
-                                icon=icon)
+                                icon=img_to_64(ICON_PATH))
         self.window.maximize()
         # TODO ! for future ! elements scaling like plots
 
@@ -73,6 +69,12 @@ class IndicatorWindow(BaseWindow):
             # restarting window
             self.window.close()
             return "layout"
+
+        elif event == "-data_source-":
+            if values[event] == "USB":
+                self.window["-usb_settings-"].update(visible=True)
+            else:
+                self.window["-usb_settings-"].update(visible=False)
 
         return None
 

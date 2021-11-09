@@ -1,5 +1,5 @@
 from Telemetry.globals import *
-from Telemetry.windows.base_window import BaseWindow
+from Telemetry.windows.base_window import BaseWindow, img_to_64
 from Telemetry import container
 import PySimpleGUI as sg
 from matplotlib.figure import Figure
@@ -72,12 +72,8 @@ class PlotWindow(BaseWindow):
                          sg.Column(self.plots_layout, key="-plots-")]
                         ]
 
-        # convert png to base64, most portable way because .ico works only on Windows
-        icon_file = open(ICON_PATH, "rb")
-        icon = icon_file.read()
-        icon = base64.encodebytes(icon)
         self.window = sg.Window(WINDOW_TITLE, layout=whole_layout, finalize=True, resizable=True,
-                                icon=icon)
+                                icon=img_to_64(ICON_PATH))
         self.window.maximize()
 
         # resize plots to fill the screen
