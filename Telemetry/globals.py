@@ -16,6 +16,10 @@ PLOTS_MARGINS = 0.05
 PLOTS_DEFAULT_RANGES = (20, 20)
 PLOTS_POINTS = 150
 
+# indicators window parameters
+FRAME_MARGINS = 10
+INDICATORS_GRID = (9, 6)  # for now only option for scaling
+
 # DataContainer parameters
 AUTO_LOG = False
 AUTO_LOG_COUNT = 100

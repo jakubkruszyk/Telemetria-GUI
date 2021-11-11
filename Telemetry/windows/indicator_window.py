@@ -4,6 +4,16 @@ from Telemetry.windows.base_window import BaseWindow
 import base64
 
 
+def set_size(element, size):
+    # Only work for sg.Column when `scrollable=True` or `size not (None, None)`
+    options = {'width': size[0], 'height': size[1]}
+    if element.Scrollable or element.Size != (None, None):
+        element.Widget.canvas.configure(**options)
+    else:
+        element.Widget.pack_propagate(0)
+        element.set_size(size)
+
+
 class IndicatorWindow(BaseWindow):
     data = {key: [0, 0, 0] for key in AVAILABLE_PLOTS}  # key: [val, min, max]
     last_update = 0
@@ -18,17 +28,25 @@ class IndicatorWindow(BaseWindow):
     # ===========================================================================
     def single_indicator_layout(self, key):
         return [[sg.Text(key)],
-                [sg.Column([[sg.Text("Value:")], [sg.Text("0.0", key=f"-{key}_val-")]]),
-                 sg.Column([[sg.Text("Min:")], [sg.Text("0.0", key=f"-{key}_min-")]]),
-                 sg.Column([[sg.Text("Max:")], [sg.Text("0.0", key=f"-{key}_max-")]])]
+                [sg.Column([[sg.Text("Value:")], [sg.Text("0.0", key=f"-{key}_val-")]], pad=0),
+                 sg.Column([[sg.Text("Min:")], [sg.Text("0.0", key=f"-{key}_min-")]], pad=0),
+                 sg.Column([[sg.Text("Max:")], [sg.Text("0.0", key=f"-{key}_max-")]], pad=0)]
                 ]
 
     def indicators_layout(self):
-        return [[sg.Text("Last update: "), sg.Text("0", key="-last_update-")],
-                [sg.Frame("", self.single_indicator_layout("None")), sg.Frame("", self.single_indicator_layout("Random"))],
-                [sg.Frame("", self.single_indicator_layout("Only 1")), sg.Frame("", self.single_indicator_layout(3))]
-                ]
+        layout = [[sg.Text("Last update: "), sg.Text("0", key="-last_update-")]]
+        i = 0
+        for row in range(INDICATORS_GRID[1]):
+            if i + INDICATORS_GRID[0] > len(AVAILABLE_PLOTS):
+                layout.append([sg.Frame("", [[sg.Column(self.single_indicator_layout(sig), key=f"-{sig}_frame-")]])
+                               for sig in AVAILABLE_PLOTS[i:]])
+                break
+            else:
+                layout.append([sg.Frame("", [[sg.Column(self.single_indicator_layout(sig), key=f"-{sig}_frame-")]])
+                               for sig in AVAILABLE_PLOTS[i:i+INDICATORS_GRID[0]]])
+            i += INDICATORS_GRID[0]
 
+        return layout
     # ===========================================================================
     # functions for managing gui
     # ===========================================================================
@@ -42,7 +60,7 @@ class IndicatorWindow(BaseWindow):
                         [sg.Column(self.side_menu_layout(), vertical_alignment="top", key="-side_menu-",
                                    size=(SIDE_MENU_WIDTH, 1), expand_y=True),
                          sg.VerticalSeparator(),
-                         sg.Column(self.indicators_layout(), key="-plots-")]
+                         sg.Column(self.indicators_layout(), key="-plots-", vertical_alignment="top")]
                         ]
 
         # convert png to base64, most portable way because .ico works only on Windows
@@ -52,7 +70,12 @@ class IndicatorWindow(BaseWindow):
         self.window = sg.Window(WINDOW_TITLE, layout=whole_layout, finalize=True, resizable=True,
                                 icon=icon)
         self.window.maximize()
-        # TODO ! for future ! elements scaling like plots
+        # TODO auto scalling
+        window_size = self.window.get_screen_size()
+        x_size = int((window_size[0] - SIDE_MENU_WIDTH) / INDICATORS_GRID[0])
+        y_size = int((window_size[1] - TOP_MENU_SIZE) / INDICATORS_GRID[1])
+        # for sig in AVAILABLE_PLOTS:
+        #     set_size(self.window[f"-{sig}_frame-"], (x_size, y_size))
 
     def read_window(self):
         event, values = self.window.read(timeout=20)
