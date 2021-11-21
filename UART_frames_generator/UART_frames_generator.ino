@@ -6,7 +6,7 @@ size_t tempSize = sizeof(temp)/sizeof(temp[0]);
 int soc; // state of charge in [%]
   
 void setup() {
-  Serial.begin(9600, SERIAL_8N1); // UART comfiguration, 8 data bits, no parity, one stop bit 
+  Serial.begin(115200, SERIAL_8N1); // UART comfiguration, 8 data bits, no parity, one stop bit 
   for(int i = 0; i < packVolSize; i++){
     packVol[i] = 3500;
   }
@@ -31,14 +31,14 @@ void loop() {
     battVol += (packVol[i] / 1000.0);
   }
   Serial.print("\r\n");
-  delay(2000);
+  delay(1000);
 
   Serial.print("B;");
   Serial.print(battVol);
   Serial.print(';');
   Serial.print("\r\n");
   battVol = 0;
-  delay(2000);
+  delay(1000);
   
   Serial.print("T;");
   for(int i = 0; i < tempSize; i++){
@@ -52,12 +52,12 @@ void loop() {
     Serial.print(';');
   }
   Serial.print("\r\n");
-  delay(2000);
+  delay(1000);
 
   Serial.print("S;");
   soc += random(-1, 2);
   Serial.print(soc);
   Serial.print(';');
   Serial.print("\r\n");
-  delay(2000);
+  delay(1000);
 }

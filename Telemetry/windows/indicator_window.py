@@ -2,6 +2,7 @@ import PySimpleGUI as sg
 from Telemetry.globals import *
 from Telemetry.windows.base_window import BaseWindow, img_to_64
 import base64
+from Telemetry import usb_receiver
 
 
 class IndicatorWindow(BaseWindow):
@@ -24,12 +25,10 @@ class IndicatorWindow(BaseWindow):
                 ]
 
     def indicators_layout(self):
-        return [[sg.Text("Last update: "), sg.Text("0", key="-last_update-")],
-                [sg.Frame("", self.single_indicator_layout("None")), sg.Frame("", self.single_indicator_layout("Random"))],
-                [sg.Frame("", self.single_indicator_layout("Only 1")), sg.Frame("", self.single_indicator_layout(3))],
-                [sg.Frame("", self.single_indicator_layout("Battery packages voltage")), sg.Frame("", self.single_indicator_layout("Battery voltage"))],
-                [sg.Frame("", self.single_indicator_layout("Battery temperatures")), sg.Frame("", self.single_indicator_layout("State of charge"))]
-                ]
+        layout = [[sg.Text("Last update: "), sg.Text("0", key="-last_update-")]]
+        for element in AVAILABLE_PLOTS:
+            layout.append([sg.Frame("", self.single_indicator_layout(element))])
+        return layout
 
     # ===========================================================================
     # functions for managing gui
@@ -77,6 +76,20 @@ class IndicatorWindow(BaseWindow):
             else:
                 self.window["-usb_settings-"].update(visible=False)
 
+        # connect to com port picked from list
+        elif event == "-selected_com-":
+            usb_receiver.connect_to_port(values["-selected_com-"])
+
+        # refresh com ports list
+        elif event == "-refresh_com-":
+            if usb_receiver.available_ports():
+                if usb_receiver.ser.is_open:
+                    com_port = usb_receiver.ser.name
+                else:
+                    com_port = None
+                self.window['-selected_com-'].update(value=com_port, values=usb_receiver.available_ports(), disabled=False)
+            else:
+                self.window['-selected_com-'].update(value="Unavailable", disabled=True)
         return None
 
     def update_data(self, data):

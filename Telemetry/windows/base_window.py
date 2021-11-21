@@ -1,6 +1,7 @@
 from Telemetry.globals import *
 import PySimpleGUI as sg
 import base64
+from Telemetry import usb_receiver
 
 
 # convert png/jpg to base64, most portable way because .ico works only on Windows
@@ -33,9 +34,15 @@ class BaseWindow:
 
     def usb_settings_layout(self):
         bcg = sg.theme_background_color()
+        available_ports = usb_receiver.available_ports()
+        no_ports = False
+        if not available_ports:
+            available_ports = ['-']
+            no_ports = True
+
         return [[sg.Text("COM Port:")],
-                [sg.Combo(values=["COM1", "COM2"], default_value="COM1", key="-selected_com-",
-                          enable_events=True, readonly=True, size=7),
+                [sg.Combo(values=available_ports, default_value=available_ports[0], key="-selected_com-",
+                          enable_events=True, readonly=True, size=7, disabled=no_ports),
                  sg.Button("", key="-refresh_com-", image_data=img_to_64(DATA_REFRESH_ICON_PATH), image_size=(32, 32), border_width=0,
                            button_color=(bcg, bcg))]
                 ]
