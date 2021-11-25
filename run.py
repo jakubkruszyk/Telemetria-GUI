@@ -1,9 +1,7 @@
-from Telemetry import main_window, container, PlotWindow, IndicatorWindow
-from Telemetry.data_generator import Generator
+from Telemetry import main_window, container, PlotWindow, IndicatorWindow, usb_receiver
 from Telemetry.globals import *
 
 main_window.create_window()
-generator = Generator(2)
 
 while True:
     event = main_window.read_window()
@@ -18,5 +16,5 @@ while True:
             main_window = PlotWindow(layout=new_layout)
         main_window.create_window()
 
-    container.update(generator.get())
+    container.update(usb_receiver.get())
     main_window.update_data(container.read_last())
