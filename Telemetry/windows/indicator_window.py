@@ -1,7 +1,6 @@
 import PySimpleGUI as sg
 from Telemetry.globals import *
 from Telemetry.windows.base_window import BaseWindow, img_to_64
-import base64
 from Telemetry import usb_receiver
 
 
@@ -26,10 +25,18 @@ class IndicatorWindow(BaseWindow):
 
     def indicators_layout(self):
         layout = [[sg.Text("Last update: "), sg.Text("0", key="-last_update-")]]
-        for element in AVAILABLE_PLOTS:
-            layout.append([sg.Frame("", self.single_indicator_layout(element))])
-        return layout
+        i = 0
+        for row in range(INDICATORS_GRID[1]):
+            if i + INDICATORS_GRID[0] > len(AVAILABLE_PLOTS):
+                layout.append([sg.Frame("", [[sg.Column(self.single_indicator_layout(sig), key=f"-{sig}_frame-")]])
+                               for sig in AVAILABLE_PLOTS[i:]])
+                break
+            else:
+                layout.append([sg.Frame("", [[sg.Column(self.single_indicator_layout(sig), key=f"-{sig}_frame-")]])
+                               for sig in AVAILABLE_PLOTS[i:i + INDICATORS_GRID[0]]])
+            i += INDICATORS_GRID[0]
 
+        return layout
     # ===========================================================================
     # functions for managing gui
     # ===========================================================================
