@@ -23,20 +23,28 @@ class IndicatorWindow(BaseWindow):
                  sg.Column([[sg.Text("Max:")], [sg.Text("0.0", key=f"-{key}_max-")]])]
                 ]
 
+    def indicators_columns(self, values):
+        name_col = [[sg.Text("Name:")]] + [[sg.Text(key, key=f"-{key}_name-")] for key in values]
+        val_col = [[sg.Text("Value:")]] + [[sg.Text("0.0", key=f"-{key}_val-")] for key in values]
+        min_col = [[sg.Text("Min:")]] + [[sg.Text("0.0", key=f"-{key}_min-")] for key in values]
+        max_col = [[sg.Text("Max:")]] + [[sg.Text("0.0", key=f"-{key}_max-")] for key in values]
+        return sg.Column(name_col), sg.Column(val_col), sg.Column(min_col), sg.Column(max_col)
+
     def indicators_layout(self):
         layout = [[sg.Text("Last update: "), sg.Text("0", key="-last_update-")]]
+        sub_layout = []
         i = 0
-        for row in range(INDICATORS_GRID[1]):
+        for _ in range(INDICATORS_GRID[1]):
             if i + INDICATORS_GRID[0] > len(AVAILABLE_PLOTS):
-                layout.append([sg.Frame("", [[sg.Column(self.single_indicator_layout(sig), key=f"-{sig}_frame-")]])
-                               for sig in AVAILABLE_PLOTS[i:]])
+                sub_layout.extend(self.indicators_columns(AVAILABLE_PLOTS[i:]))
                 break
             else:
-                layout.append([sg.Frame("", [[sg.Column(self.single_indicator_layout(sig), key=f"-{sig}_frame-")]])
-                               for sig in AVAILABLE_PLOTS[i:i + INDICATORS_GRID[0]]])
+                sub_layout.extend(self.indicators_columns(AVAILABLE_PLOTS[i:i + INDICATORS_GRID[0]]))
             i += INDICATORS_GRID[0]
-
+            sub_layout.append(sg.VerticalSeparator())
+        layout.append(sub_layout)
         return layout
+
     # ===========================================================================
     # functions for managing gui
     # ===========================================================================
@@ -55,8 +63,7 @@ class IndicatorWindow(BaseWindow):
 
         self.window = sg.Window(WINDOW_TITLE, layout=whole_layout, finalize=True, resizable=True,
                                 icon=img_to_64(ICON_PATH))
-        self.window.maximize()
-        # TODO ! for future ! elements scaling like plots
+        # self.window.maximize()  # really slows done startup
 
     def read_window(self):
         event, values = self.window.read(timeout=20)
@@ -94,7 +101,8 @@ class IndicatorWindow(BaseWindow):
                     com_port = usb_receiver.ser.name
                 else:
                     com_port = None
-                self.window['-selected_com-'].update(value=com_port, values=usb_receiver.available_ports(), disabled=False)
+                self.window['-selected_com-'].update(value=com_port, values=usb_receiver.available_ports(),
+                                                     disabled=False)
             else:
                 self.window['-selected_com-'].update(value="Unavailable", disabled=True)
         return None

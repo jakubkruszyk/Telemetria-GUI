@@ -2,6 +2,7 @@ from Telemetry.globals import *
 import serial
 import serial.tools.list_ports as port_list
 
+
 class USBReceiver:
     time = 0
     ser = serial.Serial()
@@ -27,7 +28,6 @@ class USBReceiver:
             self.ser = serial.Serial(port, BAUDRATE, BYTESIZE, PARITY, STOPBITS, TIMEOUT)
         except serial.SerialException:
             return "Can't connect to " + port + " port :/"
-
 
     def get_data_from_usb(self):  # method updates values in data dictionary
         try:

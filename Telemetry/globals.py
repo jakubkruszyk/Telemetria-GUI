@@ -1,3 +1,4 @@
+import serial
 # main window parameters
 WINDOW_TITLE = "Wacław - Telemetria"
 SIDE_MENU_WIDTH = 150
@@ -18,7 +19,7 @@ PLOTS_DEFAULT_RANGES = (20, 20)
 PLOTS_POINTS = 150
 
 # indicators window parameters
-INDICATORS_GRID = (8, 7)
+INDICATORS_GRID = (15, 4)
 
 # DataContainer parameters
 AUTO_LOG = False
@@ -26,15 +27,15 @@ AUTO_LOG_COUNT = 100
 TIME_STEP = 20/150
 
 # UART connection parameters
-import serial
 BAUDRATE = 115200
 BYTESIZE = serial.EIGHTBITS
 PARITY = serial.PARITY_NONE
 STOPBITS = serial.STOPBITS_ONE
-TIMEOUT = 0.05  # time which readline() method wait for \n symbol. Value should be grater than bytes_in_the_longest_frame * 10 / baudrate
+TIMEOUT = 0.05  # time which readline() method wait for \n symbol.
+# Value should be grater than bytes_in_the_longest_frame * 10 / baudrate
 
 # UART values parameters
-DATA_PARAMETERS = {"Battery packages voltage": ('V', 28), "Battery voltage": ('B', 1), "Battery temperatures": ('T', 12), "State of charge": ('S', 1)}
+DATA_PARAMETERS = {"Cell voltage": ('V', 28), "Bat voltage": ('B', 1), "Bat temp": ('T', 12), "SoC": ('S', 1)}
 
 # Create AVAILABLE_PLOTS based on UART values parameters
 for data in DATA_PARAMETERS:
