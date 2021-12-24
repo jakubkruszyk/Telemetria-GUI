@@ -20,6 +20,7 @@ PLOTS_POINTS = 150
 
 # indicators window parameters
 INDICATORS_GRID = (15, 4)
+COLORS = {"Warning": "#fcca03", "Error": "#ff0000"}
 
 # DataContainer parameters
 AUTO_LOG = False
@@ -35,7 +36,8 @@ TIMEOUT = 0.05  # time which readline() method wait for \n symbol.
 # Value should be grater than bytes_in_the_longest_frame * 10 / baudrate
 
 # UART values parameters
-DATA_PARAMETERS = {"Cell voltage": ('V', 28), "Bat voltage": ('B', 1), "Bat temp": ('T', 12), "SoC": ('S', 1)}
+DATA_PARAMETERS = {"Cell voltage": ('V', 28, (4.3, 4.2, 3.6, 3.4)), "Battery voltage": ('B', 1, (74, 72, 68, 66)),
+                   "Battery temp": ('T', 12, (60, 50, 10, 0)), "SoC": ('S', 1, (110, 105, 30, 15))}
 
 # Create AVAILABLE_PLOTS based on UART values parameters
 for data in DATA_PARAMETERS:
@@ -44,4 +46,4 @@ for data in DATA_PARAMETERS:
         for i in range(n):
             AVAILABLE_PLOTS.append(data + " " + str(i))
     else:
-        AVAILABLE_PLOTS.append(data)
+        AVAILABLE_PLOTS.append(data + " 0")

@@ -127,6 +127,22 @@ class IndicatorWindow(BaseWindow):
             self.window[f"-{key}_max-"].update(self.data[key][2])
 
         self.window["-last_update-"].update(f"{self.last_update:.2f}")
+        self.validate()
 
     def connect(self):
         pass
+
+    def validate(self):
+        for group in DATA_PARAMETERS:
+            for num in range(DATA_PARAMETERS[group][1]):
+                for val, typ in zip(self.data[f"{group} {num}"], ("val", "min", "max")):
+                    if not (DATA_PARAMETERS[group][2][2] < val < DATA_PARAMETERS[group][2][1]):
+                        if not (DATA_PARAMETERS[group][2][3] < val < DATA_PARAMETERS[group][2][0]):
+                            self.window[f"-{group} {num}_{typ}-"].update(background_color=COLORS["Error"],
+                                                                         text_color="#ffffff")
+                        else:
+                            self.window[f"-{group} {num}_{typ}-"].update(background_color=COLORS["Warning"],
+                                                                         text_color="#000000")
+                    else:
+                        self.window[f"-{group} {num}_{typ}-"].update(background_color=sg.theme_background_color(),
+                                                                     text_color="#ffffff")
