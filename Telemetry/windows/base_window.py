@@ -33,6 +33,7 @@ class BaseWindow:
     window = None
     selected_data_source = DATA_SOURCES[0]
     selected_layout = PLOT_LAYOUT_TYPES[0]
+    selected_port = 0
     connected = False
 
     # =====================================================================================================================================

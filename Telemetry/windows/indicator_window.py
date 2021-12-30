@@ -2,6 +2,7 @@ import PySimpleGUI as sg
 from Telemetry.globals import *
 from Telemetry.windows.base_window import BaseWindow, img_to_64, min_max_popup
 from Telemetry import usb_receiver
+import json
 
 
 class IndicatorWindow(BaseWindow):
@@ -72,12 +73,19 @@ class IndicatorWindow(BaseWindow):
 
         elif event == "Settings":
             min_max_popup()
+            self.save_config(CONFIG_PATH)
 
         elif event == "Reset":
             for group in DATA_PARAMETERS:
                 for num in range(DATA_PARAMETERS[group][1]):
                     self.window[f"-{group} {num}_max-"].update(self.window[f"-{group} {num}_val-"].DisplayText)
                     self.window[f"-{group} {num}_max-"].update(self.window[f"-{group} {num}_val-"].DisplayText)
+
+        elif event == "Export":
+            self.save_config(CONFIG_PATH)
+
+        elif event == "Import":
+            self.load_config()
 
         elif event == "Connect":
             if not self.connected:
@@ -155,3 +163,22 @@ class IndicatorWindow(BaseWindow):
                     else:
                         self.window[f"-{group} {num}_{typ}-"].update(background_color=sg.theme_background_color(),
                                                                      text_color="#ffffff")
+
+    def save_config(self, path):
+        with open(path, 'w') as file:
+            configs = {"data": self.selected_data_source, "layout": self.selected_layout, "port": self.selected_port,
+                       "min_max": {}}
+            for key, val in DATA_PARAMETERS.items():
+                configs["min_max"][key] = val[-1]
+            json.dump(configs, file)
+
+    def load_config(self, path=None):
+        if path is None:
+            sg.popup_get_file("popup_get_file", file_types=(("JSON", ".json"), ("All", ".*"),))
+        with open(path, 'r') as file:
+            configs = json.load(file)
+            self.selected_data_source = configs["data"]
+            self.selected_layout = configs["layout"]
+            self.selected_port = configs["port"]
+            for key, val in configs["min_max"].items():
+                DATA_PARAMETERS[key][-1] = val

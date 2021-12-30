@@ -5,6 +5,7 @@ SIDE_MENU_WIDTH = 150
 TOP_MENU_SIZE = 40
 GUI_THEME = "DarkGrey5"
 ICON_PATH = r"Docs\\img\\logo.png"
+CONFIG_PATH = r"Telemetry\\configs.json"
 
 PLOT_LAYOUT_TYPES = ("Indicators", "1x1", "2x1", "2x2")
 DATA_SOURCES = ("Auto", "USB", "Cloud")
