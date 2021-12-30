@@ -1,6 +1,6 @@
 import PySimpleGUI as sg
 from Telemetry.globals import *
-from Telemetry.windows.base_window import BaseWindow, img_to_64
+from Telemetry.windows.base_window import BaseWindow, img_to_64, min_max_popup
 from Telemetry import usb_receiver
 
 
@@ -69,6 +69,15 @@ class IndicatorWindow(BaseWindow):
         event, values = self.window.read(timeout=20)
         if event == sg.WINDOW_CLOSED or event is None:
             return "closed"
+
+        elif event == "Settings":
+            min_max_popup()
+
+        elif event == "Reset":
+            for group in DATA_PARAMETERS:
+                for num in range(DATA_PARAMETERS[group][1]):
+                    self.window[f"-{group} {num}_max-"].update(self.window[f"-{group} {num}_val-"].DisplayText)
+                    self.window[f"-{group} {num}_max-"].update(self.window[f"-{group} {num}_val-"].DisplayText)
 
         elif event == "Connect":
             if not self.connected:
