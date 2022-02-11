@@ -90,7 +90,9 @@ class IndicatorWindow(BaseWindow):
         elif event == "Connect":
             if not self.connected:
                 self.connected = True
-                self.connect()
+                resp = usb_receiver.connect_to_port(self.selected_port)
+                if resp is not True:
+                    sg.popup_ok(resp)
 
         elif event == "-layout_type-":
             # saving parameters that may changed and cleaning flags

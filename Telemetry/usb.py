@@ -9,9 +9,10 @@ class USBReceiver:
     data = {}  # stores data received from USB port
 
     def __init__(self):
-        port = self.available_ports()
-        if port:
-            self.connect_to_port(port[0])  # connect to first port on list by default
+        # port = self.available_ports()
+        # if port:
+        #    self.connect_to_port(port[0])  # connect to first port on list by default
+        pass
 
     def available_ports(self):  # returns list of available ports. Returns false if no ports are available
         ports = list(port_list.comports())
@@ -26,6 +27,7 @@ class USBReceiver:
         self.ser.close()
         try:
             self.ser = serial.Serial(port, BAUDRATE, BYTESIZE, PARITY, STOPBITS, TIMEOUT)
+            return True
         except serial.SerialException:
             return "Can't connect to " + port + " port :/"
 
@@ -33,9 +35,9 @@ class USBReceiver:
         try:
             if self.ser.is_open:
                 id = self.ser.read(1).decode('utf-8')  # read first byte
+                line = self.ser.readline().decode('utf-8')  # read message up to \n char
                 for key in DATA_PARAMETERS:
                     if id == DATA_PARAMETERS[key][0]:  # check if first byte is an ID
-                        line = self.ser.readline().decode('utf-8')  # read message up to \n char
                         values = line[1:-3].split(";")
                         if len(values) > 1:
                             for i in range(len(values)):
