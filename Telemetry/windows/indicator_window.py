@@ -1,6 +1,6 @@
 import PySimpleGUI as sg
 from Telemetry.globals import *
-from Telemetry.windows.base_window import BaseWindow, img_to_64, min_max_popup
+from Telemetry.windows.base_window import BaseWindow, img_to_64, min_max_popup, plot_sources_popup
 from Telemetry import usb_receiver
 
 
@@ -66,12 +66,11 @@ class IndicatorWindow(BaseWindow):
 
         elif event == "Settings":
             min_max_popup()
-            self.save_config(CONFIG_PATH)
 
         elif event == "Reset":
             for group in DATA_PARAMETERS:
                 for num in range(DATA_PARAMETERS[group][1]):
-                    self.window[f"-{group} {num}_max-"].update(self.window[f"-{group} {num}_val-"].DisplayText)
+                    self.window[f"-{group} {num}_min-"].update(self.window[f"-{group} {num}_val-"].DisplayText)
                     self.window[f"-{group} {num}_max-"].update(self.window[f"-{group} {num}_val-"].DisplayText)
 
         elif event == "Export":
@@ -136,6 +135,7 @@ class IndicatorWindow(BaseWindow):
                     self.data[key][2] = data[key]
 
         self.refresh_values()
+        self.validate()
 
     def refresh_values(self):
         for key in self.data:
@@ -144,7 +144,6 @@ class IndicatorWindow(BaseWindow):
             self.window[f"-{key}_max-"].update(self.data[key][2])
 
         self.window["-last_update-"].update(f"{self.last_update:.2f}")
-        self.validate()
 
     def validate(self):
         for group in DATA_PARAMETERS:

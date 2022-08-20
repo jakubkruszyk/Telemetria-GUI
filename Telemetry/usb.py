@@ -7,6 +7,7 @@ class USBReceiver:
     time = 0
     ser = serial.Serial()
     data = {}  # stores data received from USB port
+    data_ready = False
 
     def __init__(self):
         # port = self.available_ports()
@@ -44,6 +45,7 @@ class USBReceiver:
                                 self.data[key + " " + str(i)] = list(map(float, values))[i]  # inserts value from list of received data, to data dictionary
                         else:
                             self.data[key] = list(map(float, values))[0]
+                self.data_ready = True
         except serial.SerialException:
             self.ser.close()
             return "Disconnected from USB port :/"
@@ -52,4 +54,5 @@ class USBReceiver:
         self.data["time"] = self.time
         self.get_data_from_usb()
         self.time += TIME_STEP
+        self.data_ready = False
         return self.data

@@ -1,11 +1,10 @@
 from Telemetry.globals import *
-from Telemetry.windows.base_window import BaseWindow, img_to_64
-from Telemetry import container
+from Telemetry.windows.base_window import BaseWindow, img_to_64, min_max_popup, plot_sources_popup
+from Telemetry import usb_receiver
 import PySimpleGUI as sg
 from matplotlib.figure import Figure
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
-import base64
 
 
 class PlotWindow(BaseWindow):
@@ -13,8 +12,7 @@ class PlotWindow(BaseWindow):
     # layouts for gui sections
     # =====================================================================================================================================
     def single_plot_layout(self, num):
-        sub_layout = [[sg.Combo(values=AVAILABLE_PLOTS, default_value="None", key=f"-plot_source_{num}-",
-                                enable_events=True, readonly=True)],
+        sub_layout = [[sg.Button("Lines", metadata=num)],
                       [sg.Canvas(key=f"-plot_{num}-", background_color="black")]]
         return sg.Column(layout=sub_layout, background_color="white")
 
@@ -22,6 +20,7 @@ class PlotWindow(BaseWindow):
     # variables for work parameters
     # =====================================================================================================================================
     plots_sources = {0: "None"}
+    selected_plot_lines = dict()
 
     plots_layout = []
 
@@ -35,6 +34,8 @@ class PlotWindow(BaseWindow):
     plot_y = None
     plot_x = None
 
+    data = {key: [0 for _ in range(PLOTS_POINTS)] for key in AVAILABLE_PLOTS}  # key: [val, min, max]
+
     # =====================================================================================================================================
     # init
     # =====================================================================================================================================
@@ -45,7 +46,10 @@ class PlotWindow(BaseWindow):
         self.plots_sources = kwargs.get("plot_sources", dict())
 
         self.update_layout()
-        self.plot_x = container.read_range()["time"]
+        self.plot_x = [0 for _ in range(PLOTS_POINTS)]
+        dim = self.selected_layout.split("x")
+        self.selected_plot_lines = {key: [] for key in range(int(dim[0]) * int(dim[1]))}
+
     # =====================================================================================================================================
     # methods for managing window
     # =====================================================================================================================================
@@ -57,6 +61,7 @@ class PlotWindow(BaseWindow):
         self.plots_layout = [[self.single_plot_layout(int(dim[1]) * row + col) for col in range(int(dim[1]))]
                              for row in range(int(dim[0]))]
         self.plots_sources = {k: "None" for k in range(int(dim[0]) * int(dim[1]))}
+        self.selected_plot_lines = {key: [] for key in range(int(dim[0]) * int(dim[1]))}
 
     def create_window(self):
         # set build-in graphic theme
@@ -84,11 +89,31 @@ class PlotWindow(BaseWindow):
         for i in range(int(dim[0]) * int(dim[1])):
             self.window[f"-plot_{i}-"].set_size((x_size, y_size))
 
+        self.create_plots()
+
     def read_window(self):
         event, values = self.window.read(timeout=20)
-
         if event == sg.WIN_CLOSED or event is None:
             return "closed"
+
+        elif event == "Settings":
+            min_max_popup()
+            self.save_config(CONFIG_PATH)
+
+        elif event == "Export":
+            self.save_config(CONFIG_PATH)
+
+        elif event == "Import":
+            self.load_config()
+
+        elif event == "Connect":
+            if not self.connected:
+                resp = usb_receiver.connect_to_port(self.selected_port)
+                if resp is not True:
+                    sg.popup_ok(resp)
+                    self.connected = False
+                else:
+                    self.connected = True
 
         elif event == "-layout_type-":
             # saving parameters that may changed and cleaning flags
@@ -105,20 +130,39 @@ class PlotWindow(BaseWindow):
                 self.update_layout()
                 self.create_window()
 
-        elif event[:-3] == "-plot_source":
-            plot_id = int(event[-2])
-            self.plots_sources[plot_id] = values[event]
-            data = container.read_range()
-            self.plot_y[plot_id] = data[self.plots_sources[plot_id]]
+        elif event == "Lines":
+            plot_id = values[event].metadata
+            selected_lines = plot_sources_popup()
+            self.selected_plot_lines[plot_id] = selected_lines
 
-        elif event == "Connect":
-            if not self.connected:
-                self.connected = True
-                self.create_plots()
+        # elif event[:-3] == "-plot_source":
+        #     plot_id = int(event[-2])
+        #     self.plots_sources[plot_id] = values[event]
+        #     data = container.read_range()
+        #     self.plot_y[plot_id] = data[self.plots_sources[plot_id]]
 
-        elif event == "Import":
-            pass
+        elif event == "-data_source-":
+            if values[event] == "USB":
+                self.window["-usb_settings-"].update(visible=True)
+                self.selected_port = values["-selected_com-"]
+            else:
+                self.window["-usb_settings-"].update(visible=False)
 
+        # connect to com port picked from list
+        elif event == "-selected_com-":
+            usb_receiver.connect_to_port(values["-selected_com-"])
+
+        # refresh com ports list
+        elif event == "-refresh_com-":
+            if usb_receiver.available_ports():
+                if usb_receiver.ser.is_open:
+                    com_port = usb_receiver.ser.name
+                else:
+                    com_port = None
+                self.window['-selected_com-'].update(value=com_port, values=usb_receiver.available_ports(),
+                                                     disabled=False)
+            else:
+                self.window['-selected_com-'].update(value="Unavailable", disabled=True)
         return None
 
     # =====================================================================================================================================
@@ -174,12 +218,10 @@ class PlotWindow(BaseWindow):
             fig.canvas.draw()
             fig.canvas.flush_events()
 
-    def update_data(self, data):  # data should be a dict
+    def update_data(self, data: dict) -> None:
         self.plot_x.pop(0)
         self.plot_x.append(data.pop("time"))
-        for key, src in zip(self.plots_sources.keys(), self.plots_sources.values()):
-            self.plot_y[key].pop(0)
-            self.plot_y[key].append(data[src])
-
-        if self.connected:
-            self.refresh_plots()
+        for key, value in data.items():
+            self.data[key].pop(0)
+            self.data[key].append(value)
+        self.refresh_plots()

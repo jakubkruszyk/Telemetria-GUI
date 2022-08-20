@@ -35,6 +35,26 @@ def min_max_popup():
                 DATA_PARAMETERS[key][-1][idx] = float(values[f"-{key}_{err}-"].replace(",", "."))
 
 
+# noinspection PyTypeChecker
+def plot_sources_popup():
+    step = 5
+    i = step
+    layout = []
+    while i < len(AVAILABLE_PLOTS):
+        sub_layout = [sg.Checkbox(sig, key=f"-{sig}-") for sig in AVAILABLE_PLOTS[i-step: i]]
+        layout.append(sub_layout)
+        i += step
+    layout.append([sg.Checkbox(sig, key=f"-{sig}-") for sig in AVAILABLE_PLOTS[i-step:]])
+    layout.append([sg.Button("Save")])
+    window = sg.Window("Settings", layout, modal=True)
+    event, values = window.read(close=True)
+    if event == sg.WINDOW_CLOSED or event is None:
+        return
+    if event == "Save":
+        lines = [key for key, value in values if value]
+        return lines
+
+
 class BaseWindow:
     window = None
     selected_data_source = DATA_SOURCES[0]

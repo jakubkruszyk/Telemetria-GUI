@@ -6,6 +6,7 @@ usb_receiver = USBReceiver()
 
 # from Telemetry.windows.plot_window import PlotWindow
 from Telemetry.windows.indicator_window import IndicatorWindow
+from Telemetry.windows.plot_window import PlotWindow
 
 main_window = IndicatorWindow()
 

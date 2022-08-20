@@ -35,6 +35,7 @@ PARITY = serial.PARITY_NONE
 STOPBITS = serial.STOPBITS_ONE
 TIMEOUT = 0.05  # time which readline() method wait for \n symbol.
 # Value should be grater than bytes_in_the_longest_frame * 10 / baudrate
+WAIT_FOR_ALL = False
 
 # UART values parameters, Name: [ID, how_many, [max_err, max_war, min_war, min_err]]
 DATA_PARAMETERS = {"Cell voltage": ['V', 28, [4.3, 4.2, 3.6, 3.4]], "Battery voltage": ['B', 1, [74, 72, 68, 66]],
