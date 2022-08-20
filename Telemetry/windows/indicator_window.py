@@ -7,6 +7,7 @@ from Telemetry import usb_receiver
 class IndicatorWindow(BaseWindow):
     data = {key: [0, 0, 0] for key in AVAILABLE_PLOTS}  # key: [val, min, max]
     last_update = 0
+    initial_update = True
 
     # TODO init from config file
     def __init__(self, **kwargs):
@@ -123,17 +124,18 @@ class IndicatorWindow(BaseWindow):
 
     # ====================== Data processing ====================================
     def update_data(self, data):
-        self.last_update = data.pop("time")
+        self.last_update = data["time"]
         for key in data:
-            if data.get(key) is not None:
+            if self.data.get(key) is not None:
                 self.data[key][0] = data[key]
                 # min
-                if data[key] < self.data[key][1]:
+                if data[key] < self.data[key][1] or self.initial_update:
                     self.data[key][1] = data[key]
                 # max
-                if data[key] > self.data[key][2]:
+                if data[key] > self.data[key][2] or self.initial_update:
                     self.data[key][2] = data[key]
 
+        self.initial_update = False
         self.refresh_values()
         self.validate()
 
