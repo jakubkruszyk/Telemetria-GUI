@@ -1,58 +1,65 @@
-from Telemetry.globals import *
+import globals as gb
 import serial
 import serial.tools.list_ports as port_list
 
+port = "COM1"
+ser = serial.Serial()
+connected = False
 
-class USBReceiver:
-    time = 0
-    ser = serial.Serial()
-    data = {}  # stores data received from USB port
-    data_ready = False
 
-    def __init__(self):
-        # port = self.available_ports()
-        # if port:
-        #    self.connect_to_port(port[0])  # connect to first port on list by default
-        pass
+def connect():
+    global ser, connected
+    ser.close()
+    try:
+        ser = serial.Serial(port, gb.BAUDRATE, gb.BYTESIZE, gb.PARITY, gb.STOPBITS, gb.TIMEOUT)
+        connected = True
+        return None
+    except serial.SerialException:
+        return "Can't connect to " + port + " port :/"
 
-    def available_ports(self):  # returns list of available ports. Returns false if no ports are available
-        ports = list(port_list.comports())
-        if ports:
-            for idx, val in enumerate(ports):
-                ports[idx] = val[0]
-            return ports
+
+def disconnect():
+    global connected
+    if connected:
+        ser.close()
+        connected = False
+
+
+def available_ports():
+    if not connected:
+        return ["None"]
+
+    ports = list(port_list.comports())
+    if ports:
+        for idx, val in enumerate(ports):
+            ports[idx] = val[0]
+        return ports
+    else:
+        return None
+
+
+# TODO debugging
+def get_data():
+    if not connected:
+        return None
+
+    usb_data = dict()
+    try:
+        if ser.is_open:
+            signal_id = ser.read(1).decode('utf-8')  # read first byte
+            line = ser.readline().decode('utf-8')  # read message up to \n char
+            for key in gb.DATA_PARAMETERS:
+                if signal_id == gb.DATA_PARAMETERS[key][0]:  # check if first byte is an ID
+                    values = line[1:-3].split(";")
+                    if len(values) > 1:
+                        for i in range(len(values)):
+                            # inserts value from list of received data, to data dictionary
+                            usb_data[key + " " + str(i)] = list(map(float, values))[i]
+                    else:
+                        usb_data[key] = list(map(float, values))[0]
+            return usb_data
         else:
-            return False
+            return None
 
-    def connect_to_port(self, port):  # method opens connection with USB port
-        self.ser.close()
-        try:
-            self.ser = serial.Serial(port, BAUDRATE, BYTESIZE, PARITY, STOPBITS, TIMEOUT)
-            return True
-        except serial.SerialException:
-            return "Can't connect to " + port + " port :/"
-
-    def get_data_from_usb(self):  # method updates values in data dictionary
-        try:
-            if self.ser.is_open:
-                id = self.ser.read(1).decode('utf-8')  # read first byte
-                line = self.ser.readline().decode('utf-8')  # read message up to \n char
-                for key in DATA_PARAMETERS:
-                    if id == DATA_PARAMETERS[key][0]:  # check if first byte is an ID
-                        values = line[1:-3].split(";")
-                        if len(values) > 1:
-                            for i in range(len(values)):
-                                self.data[key + " " + str(i)] = list(map(float, values))[i]  # inserts value from list of received data, to data dictionary
-                        else:
-                            self.data[key] = list(map(float, values))[0]
-                self.data_ready = True
-        except serial.SerialException:
-            self.ser.close()
-            return "Disconnected from USB port :/"
-
-    def get(self):
-        self.data["time"] = self.time
-        self.get_data_from_usb()
-        self.time += TIME_STEP
-        self.data_ready = False
-        return self.data
+    except serial.SerialException:
+        return None

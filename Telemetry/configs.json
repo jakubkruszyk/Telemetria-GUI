@@ -1,1 +1,33 @@
-{"data": "Auto", "layout": "Indicators", "port": null, "min_max": {"Cell voltage": [4.3, 4.2, 3.6, 3.4], "Battery voltage": [74, 72, 68, 66], "Battery temp": [60, 50, 10, 0], "SoC": [110, 105, 30, 15]}}
+{
+    "data": "Cloud",
+    "port": "COM1",
+    "bucket": "Pomiary",
+    "measurement": "None",
+    "session": "",
+    "min_max": {
+        "Cell voltage": [
+            4.3,
+            4.2,
+            3.6,
+            3.4
+        ],
+        "Battery voltage": [
+            74,
+            72,
+            68,
+            66
+        ],
+        "Battery temp": [
+            60,
+            50,
+            10,
+            0
+        ],
+        "SoC": [
+            110,
+            105,
+            30,
+            15
+        ]
+    }
+}
