@@ -17,22 +17,23 @@ last_update = 0
 # reused methods
 # ======================================================================================================================
 def get_update_buckets(new_bucket=None):
-    try:
-        if new_bucket is None:
-            buckets = influx.list_buckets()
-            gb.BUCKET = buckets[0] if buckets else "None"
-            window.window[f"-selected_bucket-"].update(value=gb.BUCKET, values=buckets, disabled=False)
-        else:
-            gb.BUCKET = new_bucket
-        measurements = influx.list_measurements()
-        influx.measurement = measurements[0] if measurements else "None"
-        window.window[f"-selected_measurement-"].update(value=influx.measurement, values=measurements,
-                                                        disabled=False)
-    except:
-        influx.disconnect()
+    if new_bucket is None:
+        buckets = influx.list_buckets()
+        gb.BUCKET = buckets[0]
+        window.window[f"-selected_bucket-"].update(value=gb.BUCKET, values=buckets, disabled=False)
+    else:
+        gb.BUCKET = new_bucket
+
+    measurements = influx.list_measurements()
+    influx.measurement = measurements[0]
+    sessions = influx.list_sessions()
+    influx.session = sessions[0]
+    window.window[f"-selected_measurement-"].update(value=influx.measurement, values=measurements, disabled=False)
+    window.window[f"-selected_session-"].update(value=influx.session, values=sessions, disabled=False)
+
+    if influx.error is not None:
         window.window["Connect"].update(text="Disconnected")
-        influx.connected = False
-        sg.popup_no_wait("Cannot connect to server")
+        sg.popup_no_wait(influx.error, keep_on_top=True)
 
 
 def get_update_ports():
@@ -81,7 +82,7 @@ while True:
                     configs["min_max"][key] = val[-1]
                 json.dump(configs, file, indent=4)
         except FileNotFoundError:
-            sg.popup_no_wait("Invalid file path")
+            sg.popup_no_wait("Invalid file path", keep_on_top=True)
 
     elif event == "Import":
         path = sg.popup_get_file("popup_get_file", file_types=(("JSON", ".json"), ("All", ".*"),))
@@ -97,7 +98,7 @@ while True:
                     for key, val in configs["min_max"].items():
                         gb.DATA_PARAMETERS[key][-1] = val
                 except KeyError:
-                    sg.popup_no_wait("Config file is invalid")
+                    sg.popup_no_wait("Config file is invalid", keep_on_top=True)
 
     elif event == "Connect":
         if window.window[f"-data_source-"] == "Cloud":
@@ -112,7 +113,7 @@ while True:
         if error is None:
             window.window["Connect"].update(text="Connected")
         else:
-            sg.popup_no_wait(error)
+            sg.popup_no_wait(error, keep_on_top=True)
 
     # ========== Side menu events ======================================================================================
     elif event == "-data_source-":
@@ -131,8 +132,9 @@ while True:
             if influx.client.ping():
                 get_update_buckets()
             else:
-                sg.popup_no_wait("Cannot connect to server")
+                sg.popup_no_wait("Cannot connect to server", keep_on_top=True)
 
+    # usb settings
     elif event == "-selected_com-":
         usb.disconnect()
         window.window["Connect"].update(text="Disconnected")
@@ -143,16 +145,33 @@ while True:
         window.window["Connect"].update(text="Disconnected")
         get_update_ports()
 
+    # influx settings
     elif event == "-selected_bucket-":
         get_update_buckets(values["-selected_bucket-"])
+        influx.update_query()
+        if influx.error is not None:
+            window.window["Connect"].update(text="Disconnected")
+            sg.popup_no_wait(influx.error, keep_on_top=True)
 
     elif event == "-selected_measurement-":
         influx.measurement = values[event]
+        sessions = influx.list_sessions()
+        influx.session = sessions[0]
+        window.window[f"-selected_session-"].update(value=influx.session, values=sessions, disabled=False)
         influx.update_query()
+        if influx.error is not None:
+            window.window["Connect"].update(text="Disconnected")
+            sg.popup_no_wait(influx.error, keep_on_top=True)
 
     elif event == "-selected_session-":
         influx.session = values[event]
         influx.update_query()
+        if influx.error is not None:
+            window.window["Connect"].update(text="Disconnected")
+            sg.popup_no_wait(influx.error, keep_on_top=True)
 
     elif event == "-refresh_influx-":
         get_update_buckets()
+        if influx.error is not None:
+            window.window["Connect"].update(text="Disconnected")
+            sg.popup_no_wait(influx.error, keep_on_top=True)

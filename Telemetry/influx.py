@@ -1,6 +1,7 @@
 from influxdb_client import InfluxDBClient
 import globals as gb
 import itertools
+from urllib3.exceptions import ConnectTimeoutError
 
 client = InfluxDBClient(url=gb.URL, token=gb.TOKEN, org=gb.ORG, timeout=2000)
 query_api = client.query_api()
@@ -61,22 +62,62 @@ def query():
 
 
 def list_buckets():
+    global error
+
     if not connected:
         return ["None"]
 
-    buckets_api = client.buckets_api()
-    buckets = buckets_api.find_buckets().buckets
-    return [bucket.name for bucket in buckets if not bucket.name[0] == "_"]
+    error = None
+    try:
+        buckets_api = client.buckets_api()
+        buckets = buckets_api.find_buckets().buckets
+        buckets_list = [bucket.name for bucket in buckets if not bucket.name[0] == "_"]
+        return buckets_list if buckets_list else ["None"]
+
+    except ConnectTimeoutError:
+        disconnect()
+        error = "Lost connection to server"
+        return ["None"]
 
 
 def list_measurements():
+    global error
+
     if not connected or gb.BUCKET == "None":
         return ["None"]
 
-    q = f'import "influxdata/influxdb/schema"\n\nschema.measurements(bucket: "{gb.BUCKET}")'
-    tables = query_api.query(q)
-    measurements = tables.to_values(columns=['_value'])
-    return list(itertools.chain.from_iterable(measurements))
+    error = None
+    try:
+        q = f'import "influxdata/influxdb/schema"\n\nschema.measurements(bucket: "{gb.BUCKET}")'
+        tables = query_api.query(q)
+        measurements = tables.to_values(columns=['_value'])
+        measurements = list(itertools.chain.from_iterable(measurements))
+        return measurements if measurements else ["None"]
+
+    except ConnectTimeoutError:
+        disconnect()
+        error = "Lost connection to server"
+        return ["None"]
+
+
+def list_sessions():
+    global error
+
+    if not connected or not param_check():
+        return ["None"]
+
+    try:
+        q = f'import "influxdata/influxdb/schema"\n\nschema.measurementTagValues(bucket: "{gb.BUCKET}",' \
+            f'tag: "session",measurement: "{measurement}")'
+        tables = query_api.query(q)
+        sessions = tables.to_values(columns=['_value'])
+        sessions = list(itertools.chain.from_iterable(sessions))
+        return sessions if sessions else ["None"]
+
+    except ConnectTimeoutError:
+        disconnect()
+        error = "Lost connection to server"
+        return ["None"]
 
 
 def update_query():

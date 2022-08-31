@@ -5,7 +5,7 @@ SIDE_MENU_WIDTH = 150
 TOP_MENU_SIZE = 40
 GUI_THEME = "DarkGrey5"
 ICON_PATH = r"img\\logo.png"
-CONFIG_PATH = r"test\\configs.json"
+CONFIG_PATH = r"configs.json"
 
 PLOT_LAYOUT_TYPES = ("Indicators", "1x1", "2x1", "2x2")
 DATA_SOURCES = ("Cloud", "USB")

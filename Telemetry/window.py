@@ -3,6 +3,7 @@ import PySimpleGUI as sg
 import globals as gb
 import usb
 import influx
+from urllib3.exceptions import ConnectTimeoutError
 
 
 # ======================================================================================================================
@@ -69,25 +70,6 @@ def min_max_popup():
                 gb.DATA_PARAMETERS[key][-1][idx] = float(values[f"-{key}_{err}-"].replace(",", "."))
 
 
-def plot_sources_popup():
-    step = 5
-    i = step
-    layout = []
-    while i < len(gb.AVAILABLE_VARS):
-        sub_layout = [sg.Checkbox(sig, key=f"-{sig}-") for sig in gb.AVAILABLE_VARS[i - step: i]]
-        layout.append(sub_layout)
-        i += step
-    layout.append([sg.Checkbox(sig, key=f"-{sig}-") for sig in gb.AVAILABLE_VARS[i - step:]])
-    layout.append([sg.Button("Save")])
-    plot_sources_window = sg.Window("Settings", layout, modal=True)
-    event, values = plot_sources_window.read(close=True)
-    if event == sg.WINDOW_CLOSED or event is None:
-        return
-    if event == "Save":
-        lines = [key for key, value in values if value]
-        return lines
-
-
 # ======================================================================================================================
 # Layouts
 # ======================================================================================================================
@@ -144,21 +126,29 @@ def usb_settings_layout():
 
 def influx_settings_layout():
     bcg = sg.theme_background_color()
+
     available_buckets = influx.list_buckets()
-    available_mems = influx.list_measurements()
+    available_measurements = influx.list_measurements()
     gb.BUCKET = available_buckets[0]
-    influx.measurement = available_mems[0]
+    influx.measurement = available_measurements[0]
+
+    available_sessions = influx.list_sessions()
+    influx.session = available_sessions[0]
+
+    if influx.error is not None:
+        sg.popup_no_wait("Cannot connect to server", keep_on_top=True)
 
     return [[sg.Text("Bucket:")],
-            [sg.Combo(values=available_buckets, default_value=available_buckets[0], key="-selected_bucket-",
+            [sg.Combo(values=available_buckets, default_value=gb.BUCKET, key="-selected_bucket-",
                       enable_events=True, readonly=True, size=7),
              sg.Button("", key="-refresh_influx-", image_data=img_to_64(gb.DATA_REFRESH_ICON_PATH), image_size=(20, 20),
                        border_width=0, button_color=(bcg, bcg))],
             [sg.Text("Measurement:")],
-            [sg.Combo(values=available_mems, default_value=available_mems[0], key="-selected_measurement-",
+            [sg.Combo(values=available_measurements, default_value=influx.measurement, key="-selected_measurement-",
                       enable_events=True, readonly=True, size=7)],
             [sg.Text("Session:")],
-            [sg.Input(key="-selected_session-", enable_events=True)]
+            [sg.Combo(values=available_sessions, default_value=influx.session, key="-selected_session-",
+                      enable_events=True, readonly=True, size=7)]
             ]
 
 
