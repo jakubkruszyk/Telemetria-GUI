@@ -3,8 +3,6 @@ import PySimpleGUI as sg
 import globals as gb
 import usb
 import influx
-from urllib3.exceptions import ConnectTimeoutError
-
 
 # ======================================================================================================================
 # Data
@@ -37,7 +35,7 @@ def create_window():
                     [sg.Column(side_menu_layout(), vertical_alignment="top", key="-side_menu-",
                                size=(gb.SIDE_MENU_WIDTH, 1), expand_y=True),
                      sg.VerticalSeparator(),
-                     sg.Column(indicators_layout(), key="-plots-")]
+                     sg.Column(indicators_layout(), key="-plots-", vertical_alignment="top")]
                     ]
 
     return sg.Window(gb.WINDOW_TITLE, layout=whole_layout, finalize=True, resizable=True,
@@ -78,7 +76,8 @@ def indicators_columns(values):
     val_col = [[sg.Text("Value:")]] + [[sg.Text("0.0", key=f"-{key}_val-")] for key in values]
     min_col = [[sg.Text("Min:")]] + [[sg.Text("0.0", key=f"-{key}_min-")] for key in values]
     max_col = [[sg.Text("Max:")]] + [[sg.Text("0.0", key=f"-{key}_max-")] for key in values]
-    return sg.Column(name_col), sg.Column(val_col), sg.Column(min_col), sg.Column(max_col)
+    return sg.Column(name_col, vertical_alignment='top'), sg.Column(val_col, vertical_alignment='top'), \
+        sg.Column(min_col, vertical_alignment='top'), sg.Column(max_col, vertical_alignment='top')
 
 
 def indicators_layout():
