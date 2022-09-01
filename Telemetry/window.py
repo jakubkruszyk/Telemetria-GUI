@@ -7,24 +7,27 @@ import influx
 # ======================================================================================================================
 # Data
 # ======================================================================================================================
-window = sg.Window(title="empty")
+window = sg.Window(title="empty")  # empty window created mostly for spell checking
 
 selected_data_source = gb.DATA_SOURCES[0]
 
-data = {key: [0, 0, 0] for key in gb.AVAILABLE_VARS}  # key: [val, min, max]
-last_update = 0
-initial_update = True
+data = {key: [0, 0, 0] for key in gb.AVAILABLE_VARS}  # { key: [val, min, max] }
+last_update = 0  # keep datetime object of last query
+initial_update = True  # needed for initial write to min and max values
 
 
 # ======================================================================================================================
 # Methods
 # ======================================================================================================================
+
+# neccessary for displaing icons in pysimplegui
 def img_to_64(path):
     with open(path, "rb") as file:
         icon = file.read()
         return base64.encodebytes(icon)
 
 
+# creates main window from separate layouts functions
 def create_window():
     sg.theme(gb.GUI_THEME)
 
@@ -45,6 +48,8 @@ def create_window():
 # ======================================================================================================================
 # Popups
 # ======================================================================================================================
+
+# popup for changing error and warning thresholds for given signals
 # noinspection PyTypeChecker
 def min_max_popup():
     name_col = [[sg.Text('Signal')]] + [[sg.Text(name)] for name in gb.DATA_PARAMETERS]
@@ -85,8 +90,6 @@ def indicators_layout():
     sub_layout = []
     i = 0
     for _ in range(gb.INDICATORS_GRID[1]):
-        if i > len(gb.AVAILABLE_VARS):
-            break
         if i + gb.INDICATORS_GRID[0] > len(gb.AVAILABLE_VARS):
             sub_layout.extend(indicators_columns(gb.AVAILABLE_VARS[i:]))
             break
@@ -193,7 +196,7 @@ def refresh_values():
     window["-last_update-"].update(f"{last_update}")
 
 
-# check if current values are outside specified boundaries and set background color to error/ warning
+# check if current values are outside specified boundaries and set background color to error / warning
 def validate():
     for group in gb.DATA_PARAMETERS:
         for num in range(gb.DATA_PARAMETERS[group][1]):

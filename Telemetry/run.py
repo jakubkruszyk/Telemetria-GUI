@@ -37,6 +37,8 @@ def get_update_buckets(new_bucket=None):
 
 
 def get_update_ports():
+    usb.disconnect()
+    window.window["Connect"].update(text="Disconnected")
     com_ports = usb.available_ports()
     usb.port = com_ports[0] if com_ports else "None"
     window.window['-selected_com-'].update(value=usb.port, values=com_ports, disabled=False)

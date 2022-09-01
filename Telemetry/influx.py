@@ -122,12 +122,12 @@ def list_sessions():
 
 def update_query():
     global query_last
-    if session == "":
-        query_last = f'from(bucket: "Pomiary") |> range(start: -7d) ' \
+    if session in ("", "None"):
+        query_last = f'from(bucket: "{gb.BUCKET}") |> range(start: -7d) ' \
                      f'|> filter(fn: (r) => r["_measurement"] == "{measurement}") ' \
                      f'|> last()'
     else:
-        query_last = f'from(bucket: "Pomiary") |> range(start: -7d) ' \
+        query_last = f'from(bucket: "{gb.BUCKET}") |> range(start: -7d) ' \
                      f'|> filter(fn: (r) => r["_measurement"] == "{measurement}") ' \
                      f'|> filter(fn: (r) => r["session"] == "{session}")' \
                      f'|> last()'
